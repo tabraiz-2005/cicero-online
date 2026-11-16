@@ -48,6 +48,13 @@ DB_URL = os.environ.get("DATABASE_URL", "").strip()
 TEMP_DB = False
 if DB_URL.startswith("postgres://"):
     DB_URL = "postgresql://" + DB_URL[len("postgres://"):]
+if DB_URL.startswith("postgresql://"):
+    # Newer SQLAlchemy defaults to the "psycopg" driver; use whichever driver is installed.
+    try:
+        import psycopg2  # noqa: F401
+        DB_URL = "postgresql+psycopg2://" + DB_URL[len("postgresql://"):]
+    except ImportError:
+        DB_URL = "postgresql+psycopg://" + DB_URL[len("postgresql://"):]
 if not DB_URL:
     if ON_VERCEL:  # Vercel has no permanent disk -> temporary DB, warn in UI
         DB_URL = "sqlite:////tmp/cicero.db"
